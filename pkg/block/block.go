@@ -14,7 +14,7 @@ type Block struct {
 	PreviousHash string
 	Hash         string
 	Nonce        int
-	Data         []transaction.Transaction
+	Transactions []transaction.Transaction
 }
 
 func (b *Block) CalculateHash() string {
@@ -23,13 +23,13 @@ func (b *Block) CalculateHash() string {
 		Timestamp    int64
 		PreviousHash string
 		Nonce        int
-		Data         []transaction.Transaction
+		Transactions []transaction.Transaction
 	}{
 		Index:        b.Index,
 		Timestamp:    b.Timestamp,
 		PreviousHash: b.PreviousHash,
 		Nonce:        b.Nonce,
-		Data:         b.Data,
+		Transactions: b.Transactions,
 	}
 
 	blockBytes, err := json.Marshal(blockData)
@@ -42,6 +42,10 @@ func (b *Block) CalculateHash() string {
 	return hex.EncodeToString(hash[:])
 }
 
+/*
+A genesis block serves as the initial block created in the chain, hardcoded values are used
+as we have no other blocks to provide hashes etc
+*/
 func CreateGenesisBlock() *Block {
 	genesisData := []transaction.Transaction{
 		{
@@ -58,10 +62,25 @@ func CreateGenesisBlock() *Block {
 		Timestamp:    time.Now().UnixMilli(),
 		PreviousHash: "0",
 		Nonce:        0,
-		Data:         genesisData,
+		Transactions: genesisData,
 	}
 
 	genesisBlock.Hash = genesisBlock.CalculateHash()
 
 	return genesisBlock
+}
+
+/*
+Create a new block following on from the previous block in the chain
+*/
+func CreateNewBlock(previousBlock Block, data []transaction.Transaction) Block {
+	newBlock := Block{
+		Index:        previousBlock.Index + 1,
+		Timestamp:    time.Now().UnixMilli(),
+		PreviousHash: previousBlock.PreviousHash,
+		Nonce:        0,
+		Transactions: data,
+	}
+
+	return newBlock
 }
